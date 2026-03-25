@@ -36,6 +36,7 @@ import {
 } from "@paperclipai/adapter-codex-local";
 import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
 import { DEFAULT_GEMINI_LOCAL_MODEL } from "@paperclipai/adapter-gemini-local";
+import { DEFAULT_OLLAMA_BASE_URL, DEFAULT_OLLAMA_MODEL, DEFAULT_MAX_TURNS } from "@paperclipai/adapter-ollama-local";
 import { resolveRouteOnboardingOptions } from "../lib/onboarding-route";
 import { AsciiArtAnimation } from "./AsciiArtAnimation";
 import { OpenCodeLogoIcon } from "./OpenCodeLogoIcon";
@@ -65,6 +66,7 @@ type AdapterType =
   | "opencode_local"
   | "pi_local"
   | "cursor"
+  | "ollama_local"
   | "http"
   | "openclaw_gateway";
 
@@ -210,7 +212,8 @@ export function OnboardingWizard() {
     adapterType === "gemini_local" ||
     adapterType === "opencode_local" ||
     adapterType === "pi_local" ||
-    adapterType === "cursor";
+    adapterType === "cursor" ||
+    adapterType === "ollama_local";
   const effectiveAdapterCommand =
     command.trim() ||
     (adapterType === "codex_local"
@@ -321,10 +324,13 @@ export function OnboardingWizard() {
             ? model || DEFAULT_GEMINI_LOCAL_MODEL
           : adapterType === "cursor"
           ? model || DEFAULT_CURSOR_LOCAL_MODEL
+          : adapterType === "ollama_local"
+          ? model || DEFAULT_OLLAMA_MODEL
           : model,
       command,
       args,
-      url,
+      url: adapterType === "ollama_local" ? (url || DEFAULT_OLLAMA_BASE_URL) : url,
+      maxTurnsPerRun: adapterType === "ollama_local" ? DEFAULT_MAX_TURNS : defaultCreateValues.maxTurnsPerRun,
       dangerouslySkipPermissions: adapterType === "claude_local",
       dangerouslyBypassSandbox:
         adapterType === "codex_local"
@@ -843,6 +849,12 @@ export function OnboardingWizard() {
                             desc: "Local Cursor agent"
                           },
                           {
+                            value: "ollama_local" as const,
+                            label: "Ollama",
+                            icon: Bot,
+                            desc: "Ollama / LM Studio"
+                          },
+                          {
                             value: "openclaw_gateway" as const,
                             label: "OpenClaw Gateway",
                             icon: Bot,
@@ -880,6 +892,11 @@ export function OnboardingWizard() {
                                 }
                                 return;
                               }
+                              if (nextType === "ollama_local") {
+                                setModel(DEFAULT_OLLAMA_MODEL);
+                                if (!url) setUrl(DEFAULT_OLLAMA_BASE_URL);
+                                return;
+                              }
                               setModel("");
                             }}
                           >
@@ -903,7 +920,8 @@ export function OnboardingWizard() {
                     adapterType === "gemini_local" ||
                     adapterType === "opencode_local" ||
                     adapterType === "pi_local" ||
-                    adapterType === "cursor") && (
+                    adapterType === "cursor" ||
+                    adapterType === "ollama_local") && (
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs text-muted-foreground mb-1 block">
@@ -1124,11 +1142,14 @@ export function OnboardingWizard() {
                   )}
 
                   {(adapterType === "http" ||
-                    adapterType === "openclaw_gateway") && (
+                    adapterType === "openclaw_gateway" ||
+                    adapterType === "ollama_local") && (
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">
                         {adapterType === "openclaw_gateway"
                           ? "Gateway URL"
+                          : adapterType === "ollama_local"
+                          ? "Endpoint URL"
                           : "Webhook URL"}
                       </label>
                       <input
@@ -1136,11 +1157,18 @@ export function OnboardingWizard() {
                         placeholder={
                           adapterType === "openclaw_gateway"
                             ? "ws://127.0.0.1:18789"
+                            : adapterType === "ollama_local"
+                            ? DEFAULT_OLLAMA_BASE_URL
                             : "https://..."
                         }
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                       />
+                      {adapterType === "ollama_local" && (
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Local Ollama: <span className="font-mono">http://localhost:11434</span> · LM Studio: <span className="font-mono">http://localhost:1234</span> · For Ollama Cloud, paste your cloud endpoint URL.
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
