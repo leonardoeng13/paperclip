@@ -1,10 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { testEnvironment } from "@paperclipai/adapter-ollama-local/server";
 
 describe("ollama_local environment diagnostics", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("fails with an error when baseUrl is not a valid URL", async () => {
     const result = await testEnvironment({
       companyId: "company-1",
@@ -33,6 +37,9 @@ describe("ollama_local environment diagnostics", () => {
   });
 
   it("warns about missing API key for non-local URLs", async () => {
+    // Mock fetch to avoid real network requests
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network unreachable")));
+
     const result = await testEnvironment({
       companyId: "company-1",
       adapterType: "ollama_local",
@@ -84,6 +91,9 @@ describe("ollama_local environment diagnostics", () => {
   });
 
   it("reports API key present when configured in adapter config", async () => {
+    // Mock fetch to avoid real network requests
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network unreachable")));
+
     const result = await testEnvironment({
       companyId: "company-1",
       adapterType: "ollama_local",

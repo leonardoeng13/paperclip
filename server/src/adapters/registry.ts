@@ -77,7 +77,6 @@ import {
 } from "hermes-paperclip-adapter";
 import {
   execute as ollamaExecute,
-  listOllamaModels,
   testEnvironment as ollamaTestEnvironment,
 } from "@paperclipai/adapter-ollama-local/server";
 import {
@@ -195,7 +194,6 @@ const ollamaLocalAdapter: ServerAdapterModule = {
   execute: ollamaExecute,
   testEnvironment: ollamaTestEnvironment,
   models: ollamaModels,
-  listModels: () => listOllamaModels({}),
   supportsLocalAgentJwt: false,
   agentConfigurationDoc: ollamaAgentConfigurationDoc,
 };

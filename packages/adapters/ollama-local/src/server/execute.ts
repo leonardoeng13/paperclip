@@ -131,12 +131,13 @@ export async function execute(
   const configCwd = asString(config.cwd, "");
   const workspaceContext = parseObject(context.paperclipWorkspace);
   const workspaceCwd = asString(workspaceContext.cwd, "");
-  const effectiveCwd = workspaceCwd || configCwd || process.cwd();
+  let effectiveCwd = workspaceCwd || configCwd || process.cwd();
 
   try {
     await ensureAbsoluteDirectory(effectiveCwd, { createIfMissing: true });
   } catch {
     // non-fatal — continue with process.cwd() as fallback
+    effectiveCwd = process.cwd();
   }
 
   const promptTemplate = asString(

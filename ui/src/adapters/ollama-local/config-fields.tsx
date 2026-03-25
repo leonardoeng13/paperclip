@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
@@ -17,6 +19,9 @@ const baseUrlHint =
 
 const apiKeyHint =
   "API key for Ollama Cloud or other authenticated endpoints. Leave blank for local Ollama and LM Studio.";
+
+const modelHint =
+  "Model name to use, e.g. \"llama3.2\" or \"mistral\". Must be pulled in your Ollama installation.";
 
 const instructionsFileHint =
   "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime.";
@@ -38,6 +43,8 @@ export function OllamaLocalConfigFields({
   models,
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
+  const [apiKeyVisible, setApiKeyVisible] = useState(false);
+
   return (
     <>
       <Field label="Endpoint URL" hint={baseUrlHint}>
@@ -58,20 +65,48 @@ export function OllamaLocalConfigFields({
         />
       </Field>
       <Field label="API key" hint={apiKeyHint}>
+        <div className="relative">
+          <button
+            type="button"
+            aria-label={apiKeyVisible ? "Hide API key" : "Show API key"}
+            onClick={() => setApiKeyVisible((v) => !v)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          >
+            {apiKeyVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+          </button>
+          <DraftInput
+            value={
+              isCreate
+                ? values!.args ?? ""
+                : eff("adapterConfig", "apiKey", String(config.apiKey ?? ""))
+            }
+            onCommit={(v) =>
+              isCreate
+                ? set!({ args: v })
+                : mark("adapterConfig", "apiKey", v || undefined)
+            }
+            immediate
+            type={apiKeyVisible ? "text" : "password"}
+            className={inputClass + " pl-8"}
+            placeholder="Leave blank for local Ollama / LM Studio"
+          />
+        </div>
+      </Field>
+      <Field label="Model" hint={modelHint}>
         <DraftInput
           value={
             isCreate
-              ? values!.args ?? ""
-              : eff("adapterConfig", "apiKey", String(config.apiKey ?? ""))
+              ? values!.model ?? ""
+              : eff("adapterConfig", "model", String(config.model ?? ""))
           }
           onCommit={(v) =>
             isCreate
-              ? set!({ args: v })
-              : mark("adapterConfig", "apiKey", v || undefined)
+              ? set!({ model: v })
+              : mark("adapterConfig", "model", v || undefined)
           }
           immediate
           className={inputClass}
-          placeholder="Leave blank for local Ollama / LM Studio"
+          placeholder="llama3.2"
         />
       </Field>
       {!hideInstructionsFile && (
