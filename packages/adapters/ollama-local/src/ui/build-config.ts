@@ -75,7 +75,7 @@ export function buildOllamaLocalConfig(
   // Operational
   ac.timeoutSec = 0;
   ac.graceSec = 15;
-  ac.maxTurns = DEFAULT_MAX_TURNS;
+  ac.maxTurns = (v.maxTurnsPerRun != null && v.maxTurnsPerRun > 0) ? v.maxTurnsPerRun : DEFAULT_MAX_TURNS;
 
   // Environment variables
   const env = parseEnvBindings(v.envBindings);

@@ -27,6 +27,7 @@ import {
 } from "@paperclipai/adapter-codex-local";
 import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
 import { DEFAULT_GEMINI_LOCAL_MODEL } from "@paperclipai/adapter-gemini-local";
+import { DEFAULT_OLLAMA_BASE_URL, DEFAULT_OLLAMA_MODEL, DEFAULT_MAX_TURNS } from "@paperclipai/adapter-ollama-local";
 
 const SUPPORTED_ADVANCED_ADAPTER_TYPES = new Set<CreateConfigValues["adapterType"]>([
   "claude_local",
@@ -36,6 +37,7 @@ const SUPPORTED_ADVANCED_ADAPTER_TYPES = new Set<CreateConfigValues["adapterType
   "pi_local",
   "cursor",
   "openclaw_gateway",
+  "ollama_local",
 ]);
 
 function createValuesForAdapterType(
@@ -53,6 +55,10 @@ function createValuesForAdapterType(
     nextValues.model = DEFAULT_CURSOR_LOCAL_MODEL;
   } else if (adapterType === "opencode_local") {
     nextValues.model = "";
+  } else if (adapterType === "ollama_local") {
+    nextValues.model = DEFAULT_OLLAMA_MODEL;
+    nextValues.url = DEFAULT_OLLAMA_BASE_URL;
+    nextValues.maxTurnsPerRun = DEFAULT_MAX_TURNS;
   }
   return nextValues;
 }

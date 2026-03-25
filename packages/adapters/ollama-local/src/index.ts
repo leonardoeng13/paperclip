@@ -39,8 +39,10 @@ Core fields:
 - instructionsFilePath (string, optional): Absolute path to a markdown instructions file
   prepended to the system prompt at runtime.
 - systemPrompt (string, optional): Custom system prompt override.
-- maxTurns (number, optional): Maximum number of tool-use iterations per run.
-  Defaults to ${DEFAULT_MAX_TURNS}.
+- maxTurns (number, optional): Maximum number of bash tool-call iterations Paperclip will
+  allow per run. Defaults to ${DEFAULT_MAX_TURNS}. This is a Paperclip-side loop guard — it
+  is NOT a limit imposed by Ollama (local or cloud) or LM Studio. Increase for complex
+  multi-step tasks; reduce to cap resource usage on constrained hardware.
 
 Operational fields:
 - timeoutSec (number, optional): Run timeout in seconds. 0 = no timeout.
@@ -57,4 +59,7 @@ Notes:
 - Tool use (bash command execution) requires a model that supports function calling.
 - The adapter dynamically fetches available models from /v1/models at the configured
   endpoint.
+- Fallback across providers and demand-type routing are not supported by this adapter;
+  use multiple agents with different baseUrl/model configs to achieve routing by
+  task type.
 `;

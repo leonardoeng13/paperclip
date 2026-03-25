@@ -2,9 +2,11 @@ import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
   DraftInput,
+  DraftNumberInput,
 } from "../../components/agent-config-primitives";
 import { ChoosePathButton } from "../../components/PathInstructionsModal";
 import { LocalWorkspaceRuntimeFields } from "../local-workspace-runtime-fields";
+import { DEFAULT_MAX_TURNS } from "@paperclipai/adapter-ollama-local";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
@@ -18,6 +20,11 @@ const apiKeyHint =
 
 const instructionsFileHint =
   "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime.";
+
+const maxTurnsHint =
+  "Maximum number of bash tool-call iterations Paperclip will allow per run. " +
+  "This is an internal Paperclip limit — it is not imposed by Ollama or LM Studio. " +
+  "Increase it for complex multi-step tasks; reduce it to cap resource usage.";
 
 export function OllamaLocalConfigFields({
   mode,
@@ -93,6 +100,27 @@ export function OllamaLocalConfigFields({
           </div>
         </Field>
       )}
+      <Field label="Max turns per run" hint={maxTurnsHint}>
+        {isCreate ? (
+          <input
+            type="number"
+            className={inputClass}
+            value={values!.maxTurnsPerRun ?? DEFAULT_MAX_TURNS}
+            onChange={(e) => set!({ maxTurnsPerRun: Number(e.target.value) || DEFAULT_MAX_TURNS })}
+          />
+        ) : (
+          <DraftNumberInput
+            value={eff(
+              "adapterConfig",
+              "maxTurns",
+              Number(config.maxTurns ?? DEFAULT_MAX_TURNS),
+            )}
+            onCommit={(v) => mark("adapterConfig", "maxTurns", v || DEFAULT_MAX_TURNS)}
+            immediate
+            className={inputClass}
+          />
+        )}
+      </Field>
       <LocalWorkspaceRuntimeFields
         isCreate={isCreate}
         values={values}
