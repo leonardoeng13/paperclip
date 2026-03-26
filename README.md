@@ -57,6 +57,8 @@ It looks like a task manager — but under the hood it has org charts, budgets, 
     <td align="center"><img src="doc/assets/logos/cursor.svg" width="32" alt="Cursor" /><br/><sub>Cursor</sub></td>
     <td align="center"><img src="doc/assets/logos/bash.svg" width="32" alt="Bash" /><br/><sub>Bash</sub></td>
     <td align="center"><img src="doc/assets/logos/http.svg" width="32" alt="HTTP" /><br/><sub>HTTP</sub></td>
+    <td align="center">🦙<br/><sub>Ollama</sub></td>
+    <td align="center">🎛️<br/><sub>LM Studio</sub></td>
   </tr>
 </table>
 
@@ -123,7 +125,83 @@ Hierarchies, roles, reporting lines. Your agents have a boss, a title, and a job
 Monitor and manage your autonomous businesses from anywhere.
 </td>
 </tr>
+<tr>
+<td align="center">
+<h3>🦙 Ollama & LM Studio</h3>
+Run fully local, open-source models as agents. Zero cloud costs, complete privacy. Ollama local, Ollama Cloud, and LM Studio all supported.
+</td>
+<td align="center">
+<h3>🔍 Dynamic Model Discovery</h3>
+Automatically discovers available models from your running Ollama or LM Studio instance. No manual configuration of model lists.
+</td>
+<td align="center">
+<h3>🔐 API Key Masking</h3>
+Sensitive credentials like API keys are masked in the UI after saving, protecting them from accidental exposure.
+</td>
+</tr>
 </table>
+
+<br/>
+
+## Ollama & LM Studio Integration
+
+> **Added by [@leonardoeng13](https://github.com/leonardoeng13)**
+
+Run any open-source model as a full Paperclip agent — no cloud required, no API key needed for local setups.
+
+### Supported backends
+
+| Backend | Default URL | API Key |
+|---|---|---|
+| **Ollama (local)** | `http://localhost:11434` | Not required |
+| **Ollama Cloud** | Your cloud endpoint | Required |
+| **LM Studio** | `http://localhost:1234` | Not required |
+
+All three backends use the OpenAI-compatible `/v1/chat/completions` API.
+
+### Supported models
+
+| Model | ID |
+|---|---|
+| Llama 3.2 (3B) | `llama3.2` |
+| Llama 3.2 (1B) | `llama3.2:1b` |
+| Llama 3.1 (8B) | `llama3.1` |
+| Llama 3.1 (70B) | `llama3.1:70b` |
+| Code Llama | `codellama` |
+| DeepSeek Coder V2 | `deepseek-coder-v2` |
+| Qwen2.5 Coder | `qwen2.5-coder` |
+| Mistral 7B | `mistral` |
+| Mixtral 8x7B | `mixtral` |
+| Phi-4 | `phi4` |
+| Gemma 3 | `gemma3` |
+| Gemma 3 (27B) | `gemma3:27b` |
+| Qwen3 | `qwen3` |
+| Devstral | `devstral` |
+
+> The model list is a fallback. Paperclip dynamically fetches available models from your running instance via `/v1/models`.
+
+### Features
+
+- **Bash tool execution** — Agents can run shell commands via model function calling (requires a model that supports tool use).
+- **Dynamic model discovery** — Automatically pulls the model list from your live Ollama or LM Studio instance.
+- **API key masking** — API keys entered in the UI are masked (shown as `••••••`) after saving.
+- **Working directory control** — Set a `cwd` so agent bash commands run in the right directory.
+- **Custom instructions file** — Point to a Markdown file prepended to the system prompt at runtime.
+- **Max turns guard** — `maxTurns` (default: 20) limits the agent loop per run — a Paperclip-side guard, not an Ollama/LM Studio limit. Increase for complex tasks; lower to save resources on constrained hardware.
+- **Full UI integration** — Ollama agents appear in the Onboarding Wizard, New Agent flow, and Agent Config form.
+
+### Quick start
+
+**Ollama local:**
+```bash
+# Install Ollama: https://ollama.com
+ollama serve
+ollama pull llama3.2
+```
+Then create an agent in Paperclip with adapter type **Ollama**, leave the endpoint as `http://localhost:11434`.
+
+**LM Studio:**
+Start LM Studio, load a model, and enable the local server. Create an agent in Paperclip with adapter type **Ollama** and set the endpoint to `http://localhost:1234`.
 
 <br/>
 
@@ -261,6 +339,10 @@ We welcome contributions. See the [contributing guide](CONTRIBUTING.md) for deta
 ## License
 
 MIT &copy; 2026 Paperclip
+
+## Enhancements
+
+Ollama local, Ollama Cloud, and LM Studio adapter support added by [@leonardoeng13](https://github.com/leonardoeng13).
 
 ## Star History
 
