@@ -667,7 +667,19 @@ export function agentRoutes(db: Db) {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
     const type = req.params.type as string;
-    const models = await listAdapterModels(type);
+    // Optional adapter config fields passed as query parameters.
+    // Used by ollama_local to dynamically discover models from a remote endpoint.
+    const adapterConfig: Record<string, unknown> = {};
+    if (typeof req.query.baseUrl === "string" && req.query.baseUrl) {
+      adapterConfig.baseUrl = req.query.baseUrl;
+    }
+    if (typeof req.query.apiKey === "string" && req.query.apiKey) {
+      adapterConfig.apiKey = req.query.apiKey;
+    }
+    const models = await listAdapterModels(
+      type,
+      Object.keys(adapterConfig).length > 0 ? adapterConfig : undefined,
+    );
     res.json(models);
   });
 

@@ -86,6 +86,11 @@ export function NewAgent() {
     enabled: !!selectedCompanyId,
   });
 
+  const ollamaConfig = configValues.adapterType === "ollama_local" ? {
+    baseUrl: configValues.url ?? "",
+    apiKey: configValues.args ?? "",
+  } : undefined;
+
   const {
     data: adapterModels,
     error: adapterModelsError,
@@ -93,9 +98,9 @@ export function NewAgent() {
     isFetching: adapterModelsFetching,
   } = useQuery({
     queryKey: selectedCompanyId
-      ? queryKeys.agents.adapterModels(selectedCompanyId, configValues.adapterType)
-      : ["agents", "none", "adapter-models", configValues.adapterType],
-    queryFn: () => agentsApi.adapterModels(selectedCompanyId!, configValues.adapterType),
+      ? queryKeys.agents.adapterModels(selectedCompanyId, configValues.adapterType, ollamaConfig)
+      : ["agents", "none", "adapter-models", configValues.adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+    queryFn: () => agentsApi.adapterModels(selectedCompanyId!, configValues.adapterType, ollamaConfig),
     enabled: Boolean(selectedCompanyId),
   });
 

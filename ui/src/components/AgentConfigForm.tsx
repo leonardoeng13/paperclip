@@ -303,15 +303,28 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
     isLocal && shouldShowLegacyWorkingDirectoryField({ isCreate, adapterConfig: config });
   const uiAdapter = useMemo(() => getUIAdapter(adapterType), [adapterType]);
 
+  // Create mode helpers (declared early so ollamaConfig can reference val below)
+  const val = isCreate ? props.values : null;
+  const set = isCreate
+    ? (patch: Partial<CreateConfigValues>) => props.onChange(patch)
+    : null;
+
+  // For ollama_local, pass the effective baseUrl/apiKey so the server can
+  // dynamically discover models from the configured endpoint (Ollama Cloud or local).
+  const ollamaConfig = adapterType === "ollama_local" ? {
+    baseUrl: val?.url ?? eff("adapterConfig", "baseUrl", String(config.baseUrl ?? "")),
+    apiKey: val?.args ?? eff("adapterConfig", "apiKey", String(config.apiKey ?? "")),
+  } : undefined;
+
   // Fetch adapter models for the effective adapter type
   const {
     data: fetchedModels,
     error: fetchedModelsError,
   } = useQuery({
     queryKey: selectedCompanyId
-      ? queryKeys.agents.adapterModels(selectedCompanyId, adapterType)
-      : ["agents", "none", "adapter-models", adapterType],
-    queryFn: () => agentsApi.adapterModels(selectedCompanyId!, adapterType),
+      ? queryKeys.agents.adapterModels(selectedCompanyId, adapterType, ollamaConfig)
+      : ["agents", "none", "adapter-models", adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+    queryFn: () => agentsApi.adapterModels(selectedCompanyId!, adapterType, ollamaConfig),
     enabled: Boolean(selectedCompanyId),
   });
   const models = fetchedModels ?? externalModels ?? [];
@@ -341,12 +354,6 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
   // Popover states
   const [modelOpen, setModelOpen] = useState(false);
   const [thinkingEffortOpen, setThinkingEffortOpen] = useState(false);
-
-  // Create mode helpers
-  const val = isCreate ? props.values : null;
-  const set = isCreate
-    ? (patch: Partial<CreateConfigValues>) => props.onChange(patch)
-    : null;
 
   function buildAdapterConfigForTest(): Record<string, unknown> {
     if (isCreate) {

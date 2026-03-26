@@ -1428,12 +1428,17 @@ function ConfigurationTab({
   const [awaitingRefreshAfterSave, setAwaitingRefreshAfterSave] = useState(false);
   const lastAgentRef = useRef(agent);
 
+  const ollamaConfig = agent.adapterType === "ollama_local" ? {
+    baseUrl: String((agent.adapterConfig as Record<string, unknown>)?.baseUrl ?? ""),
+    apiKey: String((agent.adapterConfig as Record<string, unknown>)?.apiKey ?? ""),
+  } : undefined;
+
   const { data: adapterModels } = useQuery({
     queryKey:
       companyId
-        ? queryKeys.agents.adapterModels(companyId, agent.adapterType)
-        : ["agents", "none", "adapter-models", agent.adapterType],
-    queryFn: () => agentsApi.adapterModels(companyId!, agent.adapterType),
+        ? queryKeys.agents.adapterModels(companyId, agent.adapterType, ollamaConfig)
+        : ["agents", "none", "adapter-models", agent.adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+    queryFn: () => agentsApi.adapterModels(companyId!, agent.adapterType, ollamaConfig),
     enabled: Boolean(companyId),
   });
 

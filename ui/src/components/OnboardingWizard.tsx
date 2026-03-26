@@ -194,6 +194,11 @@ export function OnboardingWizard() {
     if (step === 3) autoResizeTextarea();
   }, [step, taskDescription, autoResizeTextarea]);
 
+  const ollamaConfig = adapterType === "ollama_local" ? {
+    baseUrl: url ?? "",
+    apiKey: args ?? "",
+  } : undefined;
+
   const {
     data: adapterModels,
     error: adapterModelsError,
@@ -201,9 +206,9 @@ export function OnboardingWizard() {
     isFetching: adapterModelsFetching
   } = useQuery({
     queryKey: createdCompanyId
-      ? queryKeys.agents.adapterModels(createdCompanyId, adapterType)
-      : ["agents", "none", "adapter-models", adapterType],
-    queryFn: () => agentsApi.adapterModels(createdCompanyId!, adapterType),
+      ? queryKeys.agents.adapterModels(createdCompanyId, adapterType, ollamaConfig)
+      : ["agents", "none", "adapter-models", adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+    queryFn: () => agentsApi.adapterModels(createdCompanyId!, adapterType, ollamaConfig),
     enabled: Boolean(createdCompanyId) && effectiveOnboardingOpen && step === 2
   });
   const isLocalAdapter =

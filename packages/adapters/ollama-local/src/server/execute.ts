@@ -386,10 +386,11 @@ export async function execute(
 }
 
 export async function listOllamaModels(
-  config: Record<string, unknown>,
+  config?: Record<string, unknown>,
 ): Promise<Array<{ id: string; label: string }>> {
-  const baseUrl = asString(config.baseUrl, DEFAULT_OLLAMA_BASE_URL);
+  const cfg = config ?? {};
+  const baseUrl = asString(cfg.baseUrl, DEFAULT_OLLAMA_BASE_URL);
   const apiKey =
-    asString(config.apiKey, asString(process.env.OLLAMA_API_KEY, "")) || null;
+    asString(cfg.apiKey, asString(process.env.OLLAMA_API_KEY, "")) || null;
   return listModels(baseUrl, apiKey);
 }

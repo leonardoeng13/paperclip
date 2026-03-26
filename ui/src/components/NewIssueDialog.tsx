@@ -358,6 +358,21 @@ export function NewIssueDialog() {
   const supportsAssigneeOverrides = Boolean(
     assigneeAdapterType && ISSUE_OVERRIDE_ADAPTER_TYPES.has(assigneeAdapterType),
   );
+
+  const assigneeAgent = (agents ?? []).find((agent) => agent.id === selectedAssigneeAgentId) ?? null;
+  const assigneeOllamaConfig = assigneeAdapterType === "ollama_local" && assigneeAgent ? {
+    baseUrl: String((assigneeAgent.adapterConfig as Record<string, unknown> | null | undefined)?.baseUrl ?? ""),
+    apiKey: String((assigneeAgent.adapterConfig as Record<string, unknown> | null | undefined)?.apiKey ?? ""),
+  } : undefined;
+
+  const { data: assigneeAdapterModels } = useQuery({
+    queryKey:
+      effectiveCompanyId && assigneeAdapterType
+        ? queryKeys.agents.adapterModels(effectiveCompanyId, assigneeAdapterType, assigneeOllamaConfig)
+        : ["agents", "none", "adapter-models", assigneeAdapterType ?? "none", assigneeOllamaConfig?.baseUrl ?? "", assigneeOllamaConfig?.apiKey ? "__has_key__" : ""],
+    queryFn: () => agentsApi.adapterModels(effectiveCompanyId!, assigneeAdapterType!, assigneeOllamaConfig),
+    enabled: Boolean(effectiveCompanyId) && newIssueOpen && supportsAssigneeOverrides,
+  });
   const mentionOptions = useMemo<MentionOption[]>(() => {
     const options: MentionOption[] = [];
     const activeAgents = [...(agents ?? [])]
@@ -383,15 +398,6 @@ export function NewIssueDialog() {
     }
     return options;
   }, [agents, orderedProjects]);
-
-  const { data: assigneeAdapterModels } = useQuery({
-    queryKey:
-      effectiveCompanyId && assigneeAdapterType
-        ? queryKeys.agents.adapterModels(effectiveCompanyId, assigneeAdapterType)
-        : ["agents", "none", "adapter-models", assigneeAdapterType ?? "none"],
-    queryFn: () => agentsApi.adapterModels(effectiveCompanyId!, assigneeAdapterType!),
-    enabled: Boolean(effectiveCompanyId) && newIssueOpen && supportsAssigneeOverrides,
-  });
 
   const createIssue = useMutation({
     mutationFn: async ({

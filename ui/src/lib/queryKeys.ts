@@ -23,8 +23,8 @@ export const queryKeys = {
       ["agents", "instructions-bundle", id, "file", relativePath] as const,
     keys: (agentId: string) => ["agents", "keys", agentId] as const,
     configRevisions: (agentId: string) => ["agents", "config-revisions", agentId] as const,
-    adapterModels: (companyId: string, adapterType: string) =>
-      ["agents", companyId, "adapter-models", adapterType] as const,
+    adapterModels: (companyId: string, adapterType: string, config?: { baseUrl?: string; apiKey?: string }) =>
+      ["agents", companyId, "adapter-models", adapterType, config?.baseUrl ?? "", config?.apiKey ? "__has_key__" : ""] as const,
   },
   issues: {
     list: (companyId: string) => ["issues", companyId] as const,
