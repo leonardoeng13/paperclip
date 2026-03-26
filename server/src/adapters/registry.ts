@@ -198,6 +198,24 @@ const ollamaLocalAdapter: ServerAdapterModule = {
   agentConfigurationDoc: ollamaAgentConfigurationDoc,
 };
 
+const ollamaCloudAdapter: ServerAdapterModule = {
+  type: "ollama_cloud",
+  execute: ollamaExecute,
+  testEnvironment: ollamaTestEnvironment,
+  models: ollamaModels,
+  supportsLocalAgentJwt: false,
+  agentConfigurationDoc: ollamaAgentConfigurationDoc,
+};
+
+const lmStudioAdapter: ServerAdapterModule = {
+  type: "lm_studio",
+  execute: ollamaExecute,
+  testEnvironment: ollamaTestEnvironment,
+  models: ollamaModels,
+  supportsLocalAgentJwt: false,
+  agentConfigurationDoc: ollamaAgentConfigurationDoc,
+};
+
 const adaptersByType = new Map<string, ServerAdapterModule>(
   [
     claudeLocalAdapter,
@@ -209,6 +227,8 @@ const adaptersByType = new Map<string, ServerAdapterModule>(
     openclawGatewayAdapter,
     hermesLocalAdapter,
     ollamaLocalAdapter,
+    ollamaCloudAdapter,
+    lmStudioAdapter,
     processAdapter,
     httpAdapter,
   ].map((a) => [a.type, a]),

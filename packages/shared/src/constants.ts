@@ -30,6 +30,8 @@ export const AGENT_ADAPTER_TYPES = [
   "pi_local",
   "cursor",
   "ollama_local",
+  "ollama_cloud",
+  "lm_studio",
   "openclaw_gateway",
   "hermes_local",
   "gemini_local",

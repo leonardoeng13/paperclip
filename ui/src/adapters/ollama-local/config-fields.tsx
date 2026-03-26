@@ -8,14 +8,16 @@ import {
 } from "../../components/agent-config-primitives";
 import { ChoosePathButton } from "../../components/PathInstructionsModal";
 import { LocalWorkspaceRuntimeFields } from "../local-workspace-runtime-fields";
-import { DEFAULT_MAX_TURNS } from "@paperclipai/adapter-ollama-local";
+import { DEFAULT_MAX_TURNS, DEFAULT_OLLAMA_BASE_URL, DEFAULT_LM_STUDIO_BASE_URL } from "@paperclipai/adapter-ollama-local";
 
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
 
-const baseUrlHint =
-  'Ollama API endpoint. Use "http://localhost:11434" for local Ollama, ' +
-  '"http://localhost:1234" for LM Studio, or your Ollama Cloud URL.';
+const baseUrlHints: Record<string, string> = {
+  ollama_local: 'Local Ollama API endpoint. Default: "http://localhost:11434".',
+  ollama_cloud: 'Your Ollama Cloud endpoint URL (e.g. "https://your-cloud-url.example.com").',
+  lm_studio: 'LM Studio local server URL. Default: "http://localhost:1234".',
+};
 
 const apiKeyHint =
   "API key for Ollama Cloud or other authenticated endpoints. Leave blank for local Ollama and LM Studio.";
@@ -31,6 +33,12 @@ const maxTurnsHint =
   "This is an internal Paperclip limit — it is not imposed by Ollama or LM Studio. " +
   "Increase it for complex multi-step tasks; reduce it to cap resource usage.";
 
+function defaultBaseUrlForType(adapterType: string): string {
+  if (adapterType === "lm_studio") return DEFAULT_LM_STUDIO_BASE_URL;
+  if (adapterType === "ollama_cloud") return "";
+  return DEFAULT_OLLAMA_BASE_URL;
+}
+
 export function OllamaLocalConfigFields({
   mode,
   isCreate,
@@ -44,6 +52,8 @@ export function OllamaLocalConfigFields({
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
+  const defaultBaseUrl = defaultBaseUrlForType(adapterType);
+  const baseUrlHint = baseUrlHints[adapterType] ?? baseUrlHints.ollama_local;
 
   return (
     <>
@@ -52,16 +62,16 @@ export function OllamaLocalConfigFields({
           value={
             isCreate
               ? values!.url ?? ""
-              : eff("adapterConfig", "baseUrl", String(config.baseUrl ?? "http://localhost:11434"))
+              : eff("adapterConfig", "baseUrl", String(config.baseUrl ?? defaultBaseUrl))
           }
           onCommit={(v) =>
             isCreate
               ? set!({ url: v })
-              : mark("adapterConfig", "baseUrl", v || "http://localhost:11434")
+              : mark("adapterConfig", "baseUrl", v || defaultBaseUrl || undefined)
           }
           immediate
           className={inputClass}
-          placeholder="http://localhost:11434"
+          placeholder={defaultBaseUrl || "https://your-ollama-cloud-url"}
         />
       </Field>
       <Field label="API key" hint={apiKeyHint}>

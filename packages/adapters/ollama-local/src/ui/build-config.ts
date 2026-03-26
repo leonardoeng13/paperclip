@@ -1,5 +1,5 @@
 import type { CreateConfigValues } from "@paperclipai/adapter-utils";
-import { DEFAULT_OLLAMA_BASE_URL, DEFAULT_OLLAMA_MODEL, DEFAULT_MAX_TURNS } from "../index.js";
+import { DEFAULT_OLLAMA_BASE_URL, DEFAULT_LM_STUDIO_BASE_URL, DEFAULT_OLLAMA_MODEL, DEFAULT_MAX_TURNS } from "../index.js";
 
 function parseEnvVars(text: string): Record<string, string> {
   const env: Record<string, string> = {};
@@ -51,13 +51,15 @@ function parseEnvBindings(bindings: unknown): Record<string, unknown> {
   return env;
 }
 
-export function buildOllamaLocalConfig(
+function buildConfig(
   v: CreateConfigValues,
+  defaultBaseUrl: string,
 ): Record<string, unknown> {
   const ac: Record<string, unknown> = {};
 
-  // Connection
-  ac.baseUrl = v.url || DEFAULT_OLLAMA_BASE_URL;
+  // Connection — only set baseUrl when a non-empty value is available
+  const resolvedBaseUrl = v.url || defaultBaseUrl;
+  if (resolvedBaseUrl) ac.baseUrl = resolvedBaseUrl;
   if (v.args) ac.apiKey = v.args; // reuse `args` field for API key in create form
 
   // Model
@@ -88,4 +90,22 @@ export function buildOllamaLocalConfig(
   if (Object.keys(env).length > 0) ac.env = env;
 
   return ac;
+}
+
+export function buildOllamaLocalConfig(
+  v: CreateConfigValues,
+): Record<string, unknown> {
+  return buildConfig(v, DEFAULT_OLLAMA_BASE_URL);
+}
+
+export function buildOllamaCloudConfig(
+  v: CreateConfigValues,
+): Record<string, unknown> {
+  return buildConfig(v, "");
+}
+
+export function buildLmStudioConfig(
+  v: CreateConfigValues,
+): Record<string, unknown> {
+  return buildConfig(v, DEFAULT_LM_STUDIO_BASE_URL);
 }

@@ -6,7 +6,7 @@ import { geminiLocalUIAdapter } from "./gemini-local";
 import { openCodeLocalUIAdapter } from "./opencode-local";
 import { piLocalUIAdapter } from "./pi-local";
 import { openClawGatewayUIAdapter } from "./openclaw-gateway";
-import { ollamaLocalUIAdapter } from "./ollama-local";
+import { ollamaLocalUIAdapter, ollamaCloudUIAdapter, lmStudioUIAdapter } from "./ollama-local";
 import { processUIAdapter } from "./process";
 import { httpUIAdapter } from "./http";
 
@@ -19,6 +19,8 @@ const uiAdapters: UIAdapterModule[] = [
   cursorLocalUIAdapter,
   openClawGatewayUIAdapter,
   ollamaLocalUIAdapter,
+  ollamaCloudUIAdapter,
+  lmStudioUIAdapter,
   processUIAdapter,
   httpUIAdapter,
 ];
