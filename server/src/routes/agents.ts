@@ -663,22 +663,27 @@ export function agentRoutes(db: Db) {
     }
   });
 
+  // GET: returns models without adapter config (static/cached list).
   router.get("/companies/:companyId/adapters/:type/models", async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
     const type = req.params.type as string;
-    // Optional adapter config fields passed as query parameters.
-    // Used by ollama_local to dynamically discover models from a remote endpoint.
-    const adapterConfig: Record<string, unknown> = {};
-    if (typeof req.query.baseUrl === "string" && req.query.baseUrl) {
-      adapterConfig.baseUrl = req.query.baseUrl;
-    }
-    if (typeof req.query.apiKey === "string" && req.query.apiKey) {
-      adapterConfig.apiKey = req.query.apiKey;
-    }
+    const models = await listAdapterModels(type);
+    res.json(models);
+  });
+
+  // POST: accepts optional adapterConfig in the request body so callers can
+  // pass credentials (e.g. Ollama Cloud apiKey + baseUrl) without exposing
+  // them in the URL.  The GET variant above remains for backward-compat.
+  router.post("/companies/:companyId/adapters/:type/models", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    const type = req.params.type as string;
+    const inputAdapterConfig =
+      (req.body?.adapterConfig ?? {}) as Record<string, unknown>;
     const models = await listAdapterModels(
       type,
-      Object.keys(adapterConfig).length > 0 ? adapterConfig : undefined,
+      Object.keys(inputAdapterConfig).length > 0 ? inputAdapterConfig : undefined,
     );
     res.json(models);
   });

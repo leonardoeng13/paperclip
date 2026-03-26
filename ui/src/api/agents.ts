@@ -160,13 +160,15 @@ export const agentsApi = {
     type: string,
     config?: { baseUrl?: string; apiKey?: string },
   ) => {
-    const params = new URLSearchParams();
-    if (config?.baseUrl) params.set("baseUrl", config.baseUrl);
-    if (config?.apiKey) params.set("apiKey", config.apiKey);
-    const qs = params.toString();
-    return api.get<AdapterModel[]>(
-      `/companies/${encodeURIComponent(companyId)}/adapters/${encodeURIComponent(type)}/models${qs ? `?${qs}` : ""}`,
-    );
+    const basePath = `/companies/${encodeURIComponent(companyId)}/adapters/${encodeURIComponent(type)}/models`;
+    if (config && (config.baseUrl || config.apiKey)) {
+      // Use POST so credentials never appear in the URL / server logs.
+      const adapterConfig: Record<string, string> = {};
+      if (config.baseUrl) adapterConfig.baseUrl = config.baseUrl;
+      if (config.apiKey) adapterConfig.apiKey = config.apiKey;
+      return api.post<AdapterModel[]>(basePath, { adapterConfig });
+    }
+    return api.get<AdapterModel[]>(basePath);
   },
   testEnvironment: (
     companyId: string,
