@@ -1,6 +1,7 @@
 export const type = "ollama_local";
 export const label = "Ollama";
 export const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
+export const DEFAULT_LM_STUDIO_BASE_URL = "http://localhost:1234";
 export const DEFAULT_OLLAMA_MODEL = "llama3.2";
 export const DEFAULT_MAX_TURNS = 20;
 
