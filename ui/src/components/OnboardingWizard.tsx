@@ -9,7 +9,7 @@ import { goalsApi } from "../api/goals";
 import { agentsApi } from "../api/agents";
 import { issuesApi } from "../api/issues";
 import { projectsApi } from "../api/projects";
-import { queryKeys } from "../lib/queryKeys";
+import { queryKeys, apiKeyFingerprint } from "../lib/queryKeys";
 import { Dialog, DialogPortal } from "@/components/ui/dialog";
 import {
   Popover,
@@ -207,7 +207,7 @@ export function OnboardingWizard() {
   } = useQuery({
     queryKey: createdCompanyId
       ? queryKeys.agents.adapterModels(createdCompanyId, adapterType, ollamaConfig)
-      : ["agents", "none", "adapter-models", adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+      : ["agents", "none", "adapter-models", adapterType, ollamaConfig?.baseUrl ?? "", apiKeyFingerprint(ollamaConfig?.apiKey)],
     queryFn: () => agentsApi.adapterModels(createdCompanyId!, adapterType, ollamaConfig),
     enabled: Boolean(createdCompanyId) && effectiveOnboardingOpen && step === 2
   });

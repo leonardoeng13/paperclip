@@ -5,7 +5,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { agentsApi } from "../api/agents";
 import { companySkillsApi } from "../api/companySkills";
-import { queryKeys } from "../lib/queryKeys";
+import { queryKeys, apiKeyFingerprint } from "../lib/queryKeys";
 import { AGENT_ROLES } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -99,7 +99,7 @@ export function NewAgent() {
   } = useQuery({
     queryKey: selectedCompanyId
       ? queryKeys.agents.adapterModels(selectedCompanyId, configValues.adapterType, ollamaConfig)
-      : ["agents", "none", "adapter-models", configValues.adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+      : ["agents", "none", "adapter-models", configValues.adapterType, ollamaConfig?.baseUrl ?? "", apiKeyFingerprint(ollamaConfig?.apiKey)],
     queryFn: () => agentsApi.adapterModels(selectedCompanyId!, configValues.adapterType, ollamaConfig),
     enabled: Boolean(selectedCompanyId),
   });

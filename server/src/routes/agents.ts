@@ -680,12 +680,42 @@ export function agentRoutes(db: Db) {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
     const type = req.params.type as string;
-    const inputAdapterConfig =
-      (req.body?.adapterConfig ?? {}) as Record<string, unknown>;
-    const models = await listAdapterModels(
-      type,
-      Object.keys(inputAdapterConfig).length > 0 ? inputAdapterConfig : undefined,
-    );
+
+    const rawAdapterConfig = req.body?.adapterConfig;
+    let validatedAdapterConfig: Record<string, string> | undefined;
+
+    if (rawAdapterConfig !== undefined && rawAdapterConfig !== null) {
+      if (typeof rawAdapterConfig !== "object" || Array.isArray(rawAdapterConfig)) {
+        res.status(400).json({ error: "adapterConfig must be an object" });
+        return;
+      }
+
+      const entries = Object.entries(rawAdapterConfig as Record<string, unknown>);
+      const MAX_ADAPTER_CONFIG_ENTRIES = 50;
+      if (entries.length > MAX_ADAPTER_CONFIG_ENTRIES) {
+        res.status(400).json({
+          error: `adapterConfig must have at most ${MAX_ADAPTER_CONFIG_ENTRIES} entries`,
+        });
+        return;
+      }
+
+      const result: Record<string, string> = {};
+      for (const [key, value] of entries) {
+        if (typeof value !== "string") {
+          res.status(400).json({
+            error: `adapterConfig value for "${key}" must be a string`,
+          });
+          return;
+        }
+        result[key] = value;
+      }
+
+      if (entries.length > 0) {
+        validatedAdapterConfig = result;
+      }
+    }
+
+    const models = await listAdapterModels(type, validatedAdapterConfig);
     res.json(models);
   });
 

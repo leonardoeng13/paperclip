@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { FolderOpen, Heart, ChevronDown, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { extractModelName, extractProviderId } from "../lib/model-utils";
-import { queryKeys } from "../lib/queryKeys";
+import { queryKeys, apiKeyFingerprint } from "../lib/queryKeys";
 import { useCompany } from "../context/CompanyContext";
 import {
   Field,
@@ -323,7 +323,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
   } = useQuery({
     queryKey: selectedCompanyId
       ? queryKeys.agents.adapterModels(selectedCompanyId, adapterType, ollamaConfig)
-      : ["agents", "none", "adapter-models", adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+      : ["agents", "none", "adapter-models", adapterType, ollamaConfig?.baseUrl ?? "", apiKeyFingerprint(ollamaConfig?.apiKey)],
     queryFn: () => agentsApi.adapterModels(selectedCompanyId!, adapterType, ollamaConfig),
     enabled: Boolean(selectedCompanyId),
   });

@@ -21,7 +21,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useToast } from "../context/ToastContext";
 import { useDialog } from "../context/DialogContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
-import { queryKeys } from "../lib/queryKeys";
+import { queryKeys, apiKeyFingerprint } from "../lib/queryKeys";
 import { AgentConfigForm } from "../components/AgentConfigForm";
 import { PageTabBar } from "../components/PageTabBar";
 import { adapterLabels, roleLabels, help } from "../components/agent-config-primitives";
@@ -1437,7 +1437,7 @@ function ConfigurationTab({
     queryKey:
       companyId
         ? queryKeys.agents.adapterModels(companyId, agent.adapterType, ollamaConfig)
-        : ["agents", "none", "adapter-models", agent.adapterType, ollamaConfig?.baseUrl ?? "", ollamaConfig?.apiKey ? "__has_key__" : ""],
+        : ["agents", "none", "adapter-models", agent.adapterType, ollamaConfig?.baseUrl ?? "", apiKeyFingerprint(ollamaConfig?.apiKey)],
     queryFn: () => agentsApi.adapterModels(companyId!, agent.adapterType, ollamaConfig),
     enabled: Boolean(companyId),
   });

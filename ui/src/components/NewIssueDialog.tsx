@@ -10,7 +10,7 @@ import { projectsApi } from "../api/projects";
 import { agentsApi } from "../api/agents";
 import { authApi } from "../api/auth";
 import { assetsApi } from "../api/assets";
-import { queryKeys } from "../lib/queryKeys";
+import { queryKeys, apiKeyFingerprint } from "../lib/queryKeys";
 import { useProjectOrder } from "../hooks/useProjectOrder";
 import { getRecentAssigneeIds, sortAgentsByRecency, trackRecentAssignee } from "../lib/recent-assignees";
 import { useToast } from "../context/ToastContext";
@@ -369,7 +369,7 @@ export function NewIssueDialog() {
     queryKey:
       effectiveCompanyId && assigneeAdapterType
         ? queryKeys.agents.adapterModels(effectiveCompanyId, assigneeAdapterType, assigneeOllamaConfig)
-        : ["agents", "none", "adapter-models", assigneeAdapterType ?? "none", assigneeOllamaConfig?.baseUrl ?? "", assigneeOllamaConfig?.apiKey ? "__has_key__" : ""],
+        : ["agents", "none", "adapter-models", assigneeAdapterType ?? "none", assigneeOllamaConfig?.baseUrl ?? "", apiKeyFingerprint(assigneeOllamaConfig?.apiKey)],
     queryFn: () => agentsApi.adapterModels(effectiveCompanyId!, assigneeAdapterType!, assigneeOllamaConfig),
     enabled: Boolean(effectiveCompanyId) && newIssueOpen && supportsAssigneeOverrides,
   });

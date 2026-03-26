@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, ChevronDown } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
@@ -42,38 +42,31 @@ function ModelField({
   models: { id: string; label: string }[];
 }) {
   if (models.length > 0) {
-    // Show a <select> populated with discovered models.
-    // Also allow typing a custom value via a combo-style approach:
-    // the select includes the current value if it isn't in the list.
-    const knownIds = models.map((m) => m.id);
-    const hasCustomValue = value && !knownIds.includes(value);
+    // Show a text input backed by a <datalist> so users can:
+    //  • type any custom model name freely, or
+    //  • click / start typing to pick from the discovered list.
+    const listId = "ollama-model-suggestions";
     return (
-      <div className="relative">
-        <select
+      <>
+        <datalist id={listId}>
+          {models.map((m) => (
+            <option key={m.id} value={m.id} />
+          ))}
+        </datalist>
+        <input
+          list={listId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-label="Model"
-          className={
-            inputClass +
-            " pr-7 appearance-none cursor-pointer"
-          }
-        >
-          <option value="">— select a model —</option>
-          {hasCustomValue && (
-            <option value={value}>{value} (custom)</option>
-          )}
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-      </div>
+          className={inputClass}
+          placeholder="llama3.2"
+          autoComplete="off"
+        />
+      </>
     );
   }
 
-  // Fallback: freeform text input when no models have been discovered yet.
+  // Fallback: plain text input when no models have been discovered yet.
   return (
     <DraftInput
       value={value}
