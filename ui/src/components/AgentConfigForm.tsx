@@ -500,7 +500,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                 }}
               />
             </Field>
-            {isLocal && !props.hidePromptTemplate && (
+            {(isLocal || adapterType === "ollama_local") && !props.hidePromptTemplate && (
               <>
                 <Field label="Prompt Template" hint={help.promptTemplate}>
                   <MarkdownEditor
@@ -641,7 +641,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
           )}
 
           {/* Prompt template (create mode only — edit mode shows this in Identity) */}
-          {isLocal && isCreate && (
+          {(isLocal || adapterType === "ollama_local") && isCreate && (
             <>
               <Field label="Prompt Template" hint={help.promptTemplate}>
                 <MarkdownEditor
