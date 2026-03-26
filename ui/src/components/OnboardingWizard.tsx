@@ -9,7 +9,7 @@ import { goalsApi } from "../api/goals";
 import { agentsApi } from "../api/agents";
 import { issuesApi } from "../api/issues";
 import { projectsApi } from "../api/projects";
-import { queryKeys } from "../lib/queryKeys";
+import { queryKeys, apiKeyFingerprint } from "../lib/queryKeys";
 import { Dialog, DialogPortal } from "@/components/ui/dialog";
 import {
   Popover,
@@ -196,6 +196,11 @@ export function OnboardingWizard() {
     if (step === 3) autoResizeTextarea();
   }, [step, taskDescription, autoResizeTextarea]);
 
+  const ollamaConfig = adapterType === "ollama_local" ? {
+    baseUrl: url ?? "",
+    apiKey: args ?? "",
+  } : undefined;
+
   const {
     data: adapterModels,
     error: adapterModelsError,
@@ -203,9 +208,9 @@ export function OnboardingWizard() {
     isFetching: adapterModelsFetching
   } = useQuery({
     queryKey: createdCompanyId
-      ? queryKeys.agents.adapterModels(createdCompanyId, adapterType)
-      : ["agents", "none", "adapter-models", adapterType],
-    queryFn: () => agentsApi.adapterModels(createdCompanyId!, adapterType),
+      ? queryKeys.agents.adapterModels(createdCompanyId, adapterType, ollamaConfig)
+      : ["agents", "none", "adapter-models", adapterType, ollamaConfig?.baseUrl ?? "", apiKeyFingerprint(ollamaConfig?.apiKey)],
+    queryFn: () => agentsApi.adapterModels(createdCompanyId!, adapterType, ollamaConfig),
     enabled: Boolean(createdCompanyId) && effectiveOnboardingOpen && step === 2
   });
   const isLocalAdapter =

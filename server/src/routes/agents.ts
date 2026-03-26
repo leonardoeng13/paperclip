@@ -70,6 +70,7 @@ export function agentRoutes(db: Db) {
     opencode_local: "instructionsFilePath",
     cursor: "instructionsFilePath",
     pi_local: "instructionsFilePath",
+    ollama_local: "instructionsFilePath",
   };
   const DEFAULT_MANAGED_INSTRUCTIONS_ADAPTER_TYPES = new Set(Object.keys(DEFAULT_INSTRUCTIONS_PATH_KEYS));
   const KNOWN_INSTRUCTIONS_PATH_KEYS = new Set(["instructionsFilePath", "agentsMdPath"]);
@@ -663,11 +664,58 @@ export function agentRoutes(db: Db) {
     }
   });
 
+  // GET: returns models without adapter config (static/cached list).
   router.get("/companies/:companyId/adapters/:type/models", async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
     const type = req.params.type as string;
     const models = await listAdapterModels(type);
+    res.json(models);
+  });
+
+  // POST: accepts optional adapterConfig in the request body so callers can
+  // pass credentials (e.g. Ollama Cloud apiKey + baseUrl) without exposing
+  // them in the URL.  The GET variant above remains for backward-compat.
+  router.post("/companies/:companyId/adapters/:type/models", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    const type = req.params.type as string;
+
+    const rawAdapterConfig = req.body?.adapterConfig;
+    let validatedAdapterConfig: Record<string, string> | undefined;
+
+    if (rawAdapterConfig !== undefined && rawAdapterConfig !== null) {
+      if (typeof rawAdapterConfig !== "object" || Array.isArray(rawAdapterConfig)) {
+        res.status(400).json({ error: "adapterConfig must be an object" });
+        return;
+      }
+
+      const entries = Object.entries(rawAdapterConfig as Record<string, unknown>);
+      const MAX_ADAPTER_CONFIG_ENTRIES = 50;
+      if (entries.length > MAX_ADAPTER_CONFIG_ENTRIES) {
+        res.status(400).json({
+          error: `adapterConfig must have at most ${MAX_ADAPTER_CONFIG_ENTRIES} entries`,
+        });
+        return;
+      }
+
+      const result: Record<string, string> = {};
+      for (const [key, value] of entries) {
+        if (typeof value !== "string") {
+          res.status(400).json({
+            error: `adapterConfig value for "${key}" must be a string`,
+          });
+          return;
+        }
+        result[key] = value;
+      }
+
+      if (entries.length > 0) {
+        validatedAdapterConfig = result;
+      }
+    }
+
+    const models = await listAdapterModels(type, validatedAdapterConfig);
     res.json(models);
   });
 

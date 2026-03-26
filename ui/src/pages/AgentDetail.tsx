@@ -21,7 +21,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useToast } from "../context/ToastContext";
 import { useDialog } from "../context/DialogContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
-import { queryKeys } from "../lib/queryKeys";
+import { queryKeys, apiKeyFingerprint } from "../lib/queryKeys";
 import { AgentConfigForm } from "../components/AgentConfigForm";
 import { PageTabBar } from "../components/PageTabBar";
 import { adapterLabels, roleLabels, help } from "../components/agent-config-primitives";
@@ -1428,12 +1428,17 @@ function ConfigurationTab({
   const [awaitingRefreshAfterSave, setAwaitingRefreshAfterSave] = useState(false);
   const lastAgentRef = useRef(agent);
 
+  const ollamaConfig = agent.adapterType === "ollama_local" ? {
+    baseUrl: String((agent.adapterConfig as Record<string, unknown>)?.baseUrl ?? ""),
+    apiKey: String((agent.adapterConfig as Record<string, unknown>)?.apiKey ?? ""),
+  } : undefined;
+
   const { data: adapterModels } = useQuery({
     queryKey:
       companyId
-        ? queryKeys.agents.adapterModels(companyId, agent.adapterType)
-        : ["agents", "none", "adapter-models", agent.adapterType],
-    queryFn: () => agentsApi.adapterModels(companyId!, agent.adapterType),
+        ? queryKeys.agents.adapterModels(companyId, agent.adapterType, ollamaConfig)
+        : ["agents", "none", "adapter-models", agent.adapterType, ollamaConfig?.baseUrl ?? "", apiKeyFingerprint(ollamaConfig?.apiKey)],
+    queryFn: () => agentsApi.adapterModels(companyId!, agent.adapterType, ollamaConfig),
     enabled: Boolean(companyId),
   });
 
@@ -1637,6 +1642,7 @@ function PromptsTab({
     agent.adapterType === "opencode_local" ||
     agent.adapterType === "pi_local" ||
     agent.adapterType === "hermes_local" ||
+    agent.adapterType === "ollama_local" ||
     agent.adapterType === "cursor";
 
   const { data: bundle, isLoading: bundleLoading } = useQuery({

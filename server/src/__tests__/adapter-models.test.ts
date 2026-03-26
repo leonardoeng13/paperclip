@@ -101,4 +101,51 @@ describe("adapter model listing", () => {
     const models = await listAdapterModels("opencode_local");
     expect(models).toEqual([]);
   });
+
+  it("returns ollama fallback models when no config is provided and endpoint is unreachable", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ECONNREFUSED"));
+    const models = await listAdapterModels("ollama_local");
+    // Should fall back to the static models list
+    expect(models.length).toBeGreaterThan(0);
+    expect(models.some((m) => m.id === "llama3.2")).toBe(true);
+  });
+
+  it("returns dynamically discovered ollama models when config has a reachable baseUrl", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        object: "list",
+        data: [
+          { id: "mistral-large", object: "model" },
+          { id: "llama3-70b", object: "model" },
+        ],
+      }),
+    } as Response);
+
+    const models = await listAdapterModels("ollama_local", {
+      baseUrl: "https://my-ollama-cloud.example.com",
+      apiKey: "test-api-key",
+    });
+
+    expect(models).toEqual([
+      { id: "mistral-large", label: "mistral-large" },
+      { id: "llama3-70b", label: "llama3-70b" },
+    ]);
+  });
+
+  it("falls back to static ollama models when cloud discovery returns empty list", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({ object: "list", data: [] }),
+    } as Response);
+
+    const models = await listAdapterModels("ollama_local", {
+      baseUrl: "https://my-ollama-cloud.example.com",
+      apiKey: "test-api-key",
+    });
+
+    // Empty discovery → fall back to static list
+    expect(models.length).toBeGreaterThan(0);
+    expect(models.some((m) => m.id === "llama3.2")).toBe(true);
+  });
 });

@@ -1,7 +1,12 @@
 import fs from "node:fs/promises";
 import { exec as cpExec } from "node:child_process";
 import { promisify } from "node:util";
-import type { AdapterExecutionContext, AdapterExecutionResult } from "@paperclipai/adapter-utils";
+import type {
+  AdapterExecutionContext,
+  AdapterExecutionResult,
+  AdapterSkillContext,
+  AdapterSkillSnapshot,
+} from "@paperclipai/adapter-utils";
 import {
   asString,
   asNumber,
@@ -386,10 +391,37 @@ export async function execute(
 }
 
 export async function listOllamaModels(
-  config: Record<string, unknown>,
+  config?: Record<string, unknown>,
 ): Promise<Array<{ id: string; label: string }>> {
-  const baseUrl = asString(config.baseUrl, DEFAULT_OLLAMA_BASE_URL);
+  const cfg = config ?? {};
+  const baseUrl = asString(cfg.baseUrl, DEFAULT_OLLAMA_BASE_URL);
   const apiKey =
-    asString(config.apiKey, asString(process.env.OLLAMA_API_KEY, "")) || null;
+    asString(cfg.apiKey, asString(process.env.OLLAMA_API_KEY, "")) || null;
   return listModels(baseUrl, apiKey);
+}
+
+/**
+ * Skill snapshot for the ollama_local adapter.
+ * Ollama agents execute bash commands directly in their working directory.
+ * Paperclip does not manage skill files for Ollama; the agent has full access
+ * to any tools installed in the execution environment.
+ */
+export async function listOllamaSkills(
+  ctx: AdapterSkillContext,
+): Promise<AdapterSkillSnapshot> {
+  return {
+    adapterType: ctx.adapterType,
+    supported: true,
+    mode: "ephemeral",
+    desiredSkills: [],
+    entries: [],
+    warnings: [],
+  };
+}
+
+export async function syncOllamaSkills(
+  ctx: AdapterSkillContext,
+  _desiredSkills: string[],
+): Promise<AdapterSkillSnapshot> {
+  return listOllamaSkills(ctx);
 }

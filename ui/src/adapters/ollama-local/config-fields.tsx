@@ -23,7 +23,8 @@ const apiKeyHint =
   "API key for Ollama Cloud or other authenticated endpoints. Leave blank for local Ollama and LM Studio.";
 
 const modelHint =
-  "Model name to use, e.g. \"llama3.2\" or \"mistral\". Must be pulled in your Ollama installation.";
+  "Model to use. When an endpoint is reachable, available models are discovered automatically. " +
+  "You can also type a model name manually (e.g. \"llama3.2\").";
 
 const instructionsFileHint =
   "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime.";
@@ -32,6 +33,52 @@ const maxTurnsHint =
   "Maximum number of bash tool-call iterations Paperclip will allow per run. " +
   "This is an internal Paperclip limit — it is not imposed by Ollama or LM Studio. " +
   "Increase it for complex multi-step tasks; reduce it to cap resource usage.";
+
+function ModelField({
+  value,
+  onChange,
+  models,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  models: { id: string; label: string }[];
+}) {
+  if (models.length > 0) {
+    // Show a text input backed by a <datalist> so users can:
+    //  • type any custom model name freely, or
+    //  • click / start typing to pick from the discovered list.
+    const listId = "ollama-model-suggestions";
+    return (
+      <>
+        <datalist id={listId}>
+          {models.map((m) => (
+            <option key={m.id} value={m.id} />
+          ))}
+        </datalist>
+        <input
+          list={listId}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label="Model"
+          className={inputClass}
+          placeholder="llama3.2"
+          autoComplete="off"
+        />
+      </>
+    );
+  }
+
+  // Fallback: plain text input when no models have been discovered yet.
+  return (
+    <DraftInput
+      value={value}
+      onCommit={onChange}
+      immediate
+      className={inputClass}
+      placeholder="llama3.2"
+    />
+  );
+}
 
 function defaultBaseUrlForType(adapterType: string): string {
   if (adapterType === "lm_studio") return DEFAULT_LM_STUDIO_BASE_URL;
@@ -54,6 +101,18 @@ export function OllamaLocalConfigFields({
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
   const defaultBaseUrl = defaultBaseUrlForType(adapterType);
   const baseUrlHint = baseUrlHints[adapterType] ?? baseUrlHints.ollama_local;
+
+  const currentModel = isCreate
+    ? (values!.model ?? "")
+    : eff("adapterConfig", "model", String(config.model ?? ""));
+
+  function handleModelChange(v: string) {
+    if (isCreate) {
+      set!({ model: v });
+    } else {
+      mark("adapterConfig", "model", v || undefined);
+    }
+  }
 
   return (
     <>
@@ -103,20 +162,10 @@ export function OllamaLocalConfigFields({
         </div>
       </Field>
       <Field label="Model" hint={modelHint}>
-        <DraftInput
-          value={
-            isCreate
-              ? values!.model ?? ""
-              : eff("adapterConfig", "model", String(config.model ?? ""))
-          }
-          onCommit={(v) =>
-            isCreate
-              ? set!({ model: v })
-              : mark("adapterConfig", "model", v || undefined)
-          }
-          immediate
-          className={inputClass}
-          placeholder="llama3.2"
+        <ModelField
+          value={currentModel}
+          onChange={handleModelChange}
+          models={models}
         />
       </Field>
       {!hideInstructionsFile && (

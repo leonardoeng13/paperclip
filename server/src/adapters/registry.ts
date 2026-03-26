@@ -78,6 +78,9 @@ import {
 import {
   execute as ollamaExecute,
   testEnvironment as ollamaTestEnvironment,
+  listOllamaModels,
+  listOllamaSkills,
+  syncOllamaSkills,
 } from "@paperclipai/adapter-ollama-local/server";
 import {
   agentConfigurationDoc as ollamaAgentConfigurationDoc,
@@ -194,6 +197,9 @@ const ollamaLocalAdapter: ServerAdapterModule = {
   execute: ollamaExecute,
   testEnvironment: ollamaTestEnvironment,
   models: ollamaModels,
+  listModels: listOllamaModels,
+  listSkills: listOllamaSkills,
+  syncSkills: syncOllamaSkills,
   supportsLocalAgentJwt: false,
   agentConfigurationDoc: ollamaAgentConfigurationDoc,
 };
@@ -243,11 +249,14 @@ export function getServerAdapter(type: string): ServerAdapterModule {
   return adapter;
 }
 
-export async function listAdapterModels(type: string): Promise<{ id: string; label: string }[]> {
+export async function listAdapterModels(
+  type: string,
+  config?: Record<string, unknown>,
+): Promise<{ id: string; label: string }[]> {
   const adapter = adaptersByType.get(type);
   if (!adapter) return [];
   if (adapter.listModels) {
-    const discovered = await adapter.listModels();
+    const discovered = await adapter.listModels(config);
     if (discovered.length > 0) return discovered;
   }
   return adapter.models ?? [];

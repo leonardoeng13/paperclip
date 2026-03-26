@@ -1,3 +1,15 @@
+/**
+ * Returns a non-sensitive fingerprint for an API key suitable for use in
+ * React Query cache keys.  Two different non-empty keys with the same length
+ * and same last-4 characters would collide, but in practice this is
+ * sufficient to distinguish "no key", "key A", and "key B" for the Ollama
+ * model-discovery use case.
+ */
+export function apiKeyFingerprint(apiKey: string | undefined): string {
+  if (!apiKey) return "";
+  return `${apiKey.length}_${apiKey.slice(-4)}`;
+}
+
 export const queryKeys = {
   companies: {
     all: ["companies"] as const,
@@ -23,8 +35,8 @@ export const queryKeys = {
       ["agents", "instructions-bundle", id, "file", relativePath] as const,
     keys: (agentId: string) => ["agents", "keys", agentId] as const,
     configRevisions: (agentId: string) => ["agents", "config-revisions", agentId] as const,
-    adapterModels: (companyId: string, adapterType: string) =>
-      ["agents", companyId, "adapter-models", adapterType] as const,
+    adapterModels: (companyId: string, adapterType: string, config?: { baseUrl?: string; apiKey?: string }) =>
+      ["agents", companyId, "adapter-models", adapterType, config?.baseUrl ?? "", apiKeyFingerprint(config?.apiKey)] as const,
   },
   issues: {
     list: (companyId: string) => ["issues", companyId] as const,

@@ -155,10 +155,21 @@ export const agentsApi = {
     api.get<AgentTaskSession[]>(agentPath(id, companyId, "/task-sessions")),
   resetSession: (id: string, taskKey?: string | null, companyId?: string) =>
     api.post<void>(agentPath(id, companyId, "/runtime-state/reset-session"), { taskKey: taskKey ?? null }),
-  adapterModels: (companyId: string, type: string) =>
-    api.get<AdapterModel[]>(
-      `/companies/${encodeURIComponent(companyId)}/adapters/${encodeURIComponent(type)}/models`,
-    ),
+  adapterModels: (
+    companyId: string,
+    type: string,
+    config?: { baseUrl?: string; apiKey?: string },
+  ) => {
+    const basePath = `/companies/${encodeURIComponent(companyId)}/adapters/${encodeURIComponent(type)}/models`;
+    if (config && (config.baseUrl || config.apiKey)) {
+      // Use POST so credentials never appear in the URL / server logs.
+      const adapterConfig: Record<string, string> = {};
+      if (config.baseUrl) adapterConfig.baseUrl = config.baseUrl;
+      if (config.apiKey) adapterConfig.apiKey = config.apiKey;
+      return api.post<AdapterModel[]>(basePath, { adapterConfig });
+    }
+    return api.get<AdapterModel[]>(basePath);
+  },
   testEnvironment: (
     companyId: string,
     type: string,
