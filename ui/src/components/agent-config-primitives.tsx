@@ -65,7 +65,9 @@ export const adapterLabels: Record<string, string> = {
   openclaw_gateway: "OpenClaw Gateway",
   cursor: "Cursor (local)",
   pi_local: "Pi (local)",
-  ollama_local: "Ollama",
+  ollama_local: "Ollama Local",
+  ollama_cloud: "Ollama Cloud",
+  lm_studio: "LM Studio",
   process: "Process",
   http: "HTTP",
 };
